@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Riwayat Transaksi UMKM</title>
+    <style>
+        body { margin:0; font-family:Arial, sans-serif; background:#f4f6f9; }
+        .navbar { background:#0f766e; color:white; padding:18px 30px; display:flex; justify-content:space-between; align-items:center; }
+        .navbar a { color:white; text-decoration:none; margin-left:15px; font-weight:bold; }
+        .container { padding:30px; }
+        .card { background:white; padding:24px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+        table { width:100%; border-collapse:collapse; margin-top:18px; }
+        th, td { padding:12px; border-bottom:1px solid #e5e7eb; text-align:left; }
+        th { background:#f1f5f9; }
+    </style>
+</head>
+<body>
+@include('partials.navbar', ['title' => 'Riwayat Transaksi UMKM'])
+<div class="container">
+    <div class="card">
+        <h1>Riwayat Transaksi</h1>
+        <table>
+            <thead><tr><th>No</th><th>Tanggal</th><th>Pembeli</th><th>Produk</th><th>Jumlah</th><th>Subtotal</th><th>Status</th></tr></thead>
+            <tbody>
+                @forelse($orders as $index => $order)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $order->tanggal_order }}</td>
+                        <td>{{ $order->pembeli }}</td>
+                        <td>{{ $order->nama_produk }}</td>
+                        <td>{{ $order->jumlah }}</td>
+                        <td>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</td>
+                        <td>{{ $order->status_order }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="7">Belum ada transaksi.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
