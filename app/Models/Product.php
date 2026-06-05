@@ -12,7 +12,6 @@ class Product extends Model
         'nama_produk',
         'harga',
         'stok_manual',
-        'stok_iot',
         'status_stok',
         'gambar',
         'deskripsi',

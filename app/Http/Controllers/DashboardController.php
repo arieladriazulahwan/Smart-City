@@ -70,13 +70,6 @@ class DashboardController extends Controller
         $totalTransaksi = (clone $orderQuery)->count();
         $totalOmzet = (clone $orderQuery)->sum('total_harga');
 
-        $stokIot = DB::table('iot_stocks')
-            ->join('products', 'iot_stocks.product_id', '=', 'products.id')
-            ->select('products.nama_produk', 'iot_stocks.persentase_stok', 'iot_stocks.status_stok', 'iot_stocks.waktu_update')
-            ->when($umkmIds !== null, fn ($query) => $query->whereIn('products.umkm_id', $umkmIds))
-            ->latest('iot_stocks.waktu_update')
-            ->first();
-
         $umkms = DB::table('umkms')
             ->when($user->role === 'umkm', fn ($query) => $query->where('user_id', $user->id))
             ->get();
@@ -143,7 +136,6 @@ class DashboardController extends Controller
             'jumlahUmkm',
             'totalTransaksi',
             'totalOmzet',
-            'stokIot',
             'totalProduk',
             'umkmPending',
             'totalKategori',

@@ -37,7 +37,7 @@ class ProductController extends Controller
             })
             ->when($request->category_id, fn ($query, $categoryId) => $query->where('products.category_id', $categoryId))
             ->orderBy('products.nama_produk')
-            ->get();
+            ->paginate(12);
 
         $categories = DB::table('categories')->orderBy('nama_kategori')->get();
 

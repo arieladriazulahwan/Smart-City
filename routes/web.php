@@ -9,10 +9,17 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UmkmController;
 
+use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\ProfileController;
+
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::get('/forgot-password', [PasswordResetController::class, 'showForgot']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendReset']);
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset']);
+Route::post('/reset-password', [PasswordResetController::class, 'processReset']);
 
 Route::get('/', function () {
     return redirect('/login');
@@ -21,6 +28,11 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/dashboard', [DashboardController::class, 'redirectByRole']);
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::get('/profile/edit', [ProfileController::class, 'edit']);
+    Route::post('/profile/update', [ProfileController::class, 'update']);
+    Route::get('/profile/change-password', [ProfileController::class, 'showChangePassword']);
+    Route::post('/profile/change-password', [ProfileController::class, 'updatePassword']);
 
     Route::get('/produk', [ProductController::class, 'index']);
 

@@ -56,6 +56,20 @@
             border-radius: 8px;
         }
 
+        .hero {
+            background: linear-gradient(90deg, #06b6d4 0%, #0f766e 100%);
+            color: white;
+            padding: 34px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hero h2 { margin:0; font-size:28px; }
+
         .products {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -67,6 +81,12 @@
             border-radius: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             overflow: hidden;
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 10px 30px rgba(2,6,23,0.18);
         }
 
         .image-box {
@@ -78,6 +98,19 @@
             color: white;
             font-size: 42px;
             font-weight: bold;
+            position: relative;
+        }
+
+        .ribbon {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #f97316;
+            color: white;
+            padding: 6px 10px;
+            font-weight: bold;
+            border-radius: 6px;
+            font-size: 12px;
         }
 
         .content {
@@ -104,6 +137,7 @@
             border-radius: 20px;
             font-size: 13px;
             margin-bottom: 10px;
+            margin-right: 8px;
         }
 
         .info {
@@ -134,6 +168,11 @@
             cursor: pointer;
         }
 
+        .btn.secondary {
+            background: #10b981;
+            margin-top:8px;
+        }
+
         .success {
             background: #dcfce7;
             color: #166534;
@@ -146,6 +185,8 @@
             .products, .filters {
                 grid-template-columns: 1fr;
             }
+
+            .products { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -154,6 +195,15 @@
 @include('partials.navbar', ['title' => 'Marketplace Produk'])
 
 <div class="container">
+    <div class="hero">
+        <div>
+            <h2>Belanja Produk Lokal, Dukung UMKM Palu</h2>
+            <p style="opacity:.92; margin-top:6px;">Temukan produk khas kota Palu dengan mudah — gratis ongkir untuk penjual verified.</p>
+        </div>
+        <div>
+            <a href="/produk" class="btn" style="background:white; color:#0f766e;">Jelajahi Produk</a>
+        </div>
+    </div>
     <div class="title">
         <h1>Marketplace Produk UMKM</h1>
         <p>Produk lokal Kota Palu dalam platform Smart Economy.</p>
@@ -180,38 +230,51 @@
         @forelse($products as $product)
             <div class="card">
                 <div class="image-box">
+                    @if($product->stok_manual <= 10)
+                        <div class="ribbon">Terbatas</div>
+                    @endif
                     {{ strtoupper(substr($product->nama_produk, 0, 1)) }}
                 </div>
 
                 <div class="content">
-                    <span class="badge">{{ $product->nama_kategori }}</span>
-
-                    <h3>{{ $product->nama_produk }}</h3>
-
-                    <div class="price">
-                        Rp {{ number_format($product->harga, 0, ',', '.') }}
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                        <div>
+                            <span class="badge">{{ $product->nama_kategori }}</span>
+                            <h3 style="display:inline-block; margin-left:6px;">{{ $product->nama_produk }}</h3>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="price">Rp {{ number_format($product->harga, 0, ',', '.') }}</div>
+                        </div>
                     </div>
 
-                    <div class="info">
+                    <div class="info" style="margin-top:8px;">
                         <strong>UMKM:</strong> {{ $product->nama_umkm }} <br>
-                        <strong>Deskripsi:</strong> {{ $product->deskripsi }}
+                        <strong>Deskripsi:</strong> {{ 
+                            strlen($product->deskripsi) > 120 ? substr($product->deskripsi,0,120) . '...' : $product->deskripsi
+                        }}
                     </div>
 
                     <div class="stock">
-                        <strong>Stok Manual:</strong> {{ $product->stok_manual }} <br>
-                        <strong>Stok IoT:</strong> {{ $product->stok_iot }}% <br>
-                        <strong>Status:</strong> {{ $product->status_stok }}
+                        <strong>Stok:</strong> {{ $product->stok_manual }} • <strong>Status:</strong> {{ $product->status_stok }}
                     </div>
 
-                    <form method="POST" action="/keranjang/{{ $product->id }}/add">
-                        @csrf
-                        <button class="btn" type="submit">Tambah ke Keranjang</button>
-                    </form>
+                    <div style="display:flex; gap:8px;">
+                        <form method="POST" action="/keranjang/{{ $product->id }}/add" style="flex:1;">
+                            @csrf
+                            <button class="btn" type="submit">Tambah ke Keranjang</button>
+                        </form>
+
+                        <a href="/keranjang" class="btn secondary" style="flex:0 0 140px; display:inline-flex; align-items:center; justify-content:center;">Lihat Keranjang</a>
+                    </div>
                 </div>
             </div>
         @empty
             <p>Produk tidak ditemukan.</p>
         @endforelse
+    </div>
+
+    <div style="margin-top:20px; text-align:center;">
+        {{ $products->withQueryString()->links() }}
     </div>
 </div>
 

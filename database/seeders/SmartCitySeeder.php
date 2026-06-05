@@ -17,7 +17,6 @@ class SmartCitySeeder extends Seeder
             $this->seedUmkms();
             $this->seedProducts();
             $this->seedOrders();
-            $this->seedIotStocks();
         });
     }
 
@@ -120,12 +119,12 @@ class SmartCitySeeder extends Seeder
     private function seedProducts(): void
     {
         $products = [
-            ['umkm' => 'Kopi Lokal Palu', 'category' => 'Kuliner', 'nama_produk' => 'Kopi Bubuk Palu', 'harga' => 35000, 'stok_manual' => 48, 'stok_iot' => 30, 'status_stok' => 'Menipis', 'deskripsi' => 'Kopi bubuk khas Palu dengan aroma kuat.'],
-            ['umkm' => 'Kopi Lokal Palu', 'category' => 'Kuliner', 'nama_produk' => 'Keripik Pisang Palu', 'harga' => 20000, 'stok_manual' => 76, 'stok_iot' => 75, 'status_stok' => 'Aman', 'deskripsi' => 'Keripik pisang renyah produksi UMKM lokal.'],
-            ['umkm' => 'Tenun Kaili Palu', 'category' => 'Kerajinan', 'nama_produk' => 'Kain Tenun Motif Kaili', 'harga' => 185000, 'stok_manual' => 12, 'stok_iot' => 0, 'status_stok' => 'Aman', 'deskripsi' => 'Kain tenun lokal dengan motif khas Kaili.'],
-            ['umkm' => 'Tenun Kaili Palu', 'category' => 'Fashion', 'nama_produk' => 'Tas Tenun Mini', 'harga' => 95000, 'stok_manual' => 8, 'stok_iot' => 0, 'status_stok' => 'Menipis', 'deskripsi' => 'Tas mini berbahan kain tenun lokal.'],
-            ['umkm' => 'Sambal Roa Talise', 'category' => 'Kuliner', 'nama_produk' => 'Sambal Roa Botol', 'harga' => 30000, 'stok_manual' => 34, 'stok_iot' => 42, 'status_stok' => 'Aman', 'deskripsi' => 'Sambal roa pedas gurih khas pesisir Talise.'],
-            ['umkm' => 'Laundry Bersih Palu', 'category' => 'Jasa', 'nama_produk' => 'Paket Laundry 5 Kg', 'harga' => 45000, 'stok_manual' => 100, 'stok_iot' => 0, 'status_stok' => 'Aman', 'deskripsi' => 'Layanan cuci lipat pakaian untuk area Palu Selatan.'],
+            ['umkm' => 'Kopi Lokal Palu', 'category' => 'Kuliner', 'nama_produk' => 'Kopi Bubuk Palu', 'harga' => 35000, 'stok_manual' => 48, 'status_stok' => 'Menipis', 'deskripsi' => 'Kopi bubuk khas Palu dengan aroma kuat.'],
+            ['umkm' => 'Kopi Lokal Palu', 'category' => 'Kuliner', 'nama_produk' => 'Keripik Pisang Palu', 'harga' => 20000, 'stok_manual' => 76, 'status_stok' => 'Aman', 'deskripsi' => 'Keripik pisang renyah produksi UMKM lokal.'],
+            ['umkm' => 'Tenun Kaili Palu', 'category' => 'Kerajinan', 'nama_produk' => 'Kain Tenun Motif Kaili', 'harga' => 185000, 'stok_manual' => 12, 'status_stok' => 'Aman', 'deskripsi' => 'Kain tenun lokal dengan motif khas Kaili.'],
+            ['umkm' => 'Tenun Kaili Palu', 'category' => 'Fashion', 'nama_produk' => 'Tas Tenun Mini', 'harga' => 95000, 'stok_manual' => 8, 'status_stok' => 'Menipis', 'deskripsi' => 'Tas mini berbahan kain tenun lokal.'],
+            ['umkm' => 'Sambal Roa Talise', 'category' => 'Kuliner', 'nama_produk' => 'Sambal Roa Botol', 'harga' => 30000, 'stok_manual' => 34, 'status_stok' => 'Aman', 'deskripsi' => 'Sambal roa pedas gurih khas pesisir Talise.'],
+            ['umkm' => 'Laundry Bersih Palu', 'category' => 'Jasa', 'nama_produk' => 'Paket Laundry 5 Kg', 'harga' => 45000, 'stok_manual' => 100, 'status_stok' => 'Aman', 'deskripsi' => 'Layanan cuci lipat pakaian untuk area Palu Selatan.'],
         ];
 
         foreach ($products as $product) {
@@ -138,7 +137,7 @@ class SmartCitySeeder extends Seeder
                     'category_id' => $categoryId,
                     'harga' => $product['harga'],
                     'stok_manual' => $product['stok_manual'],
-                    'stok_iot' => $product['stok_iot'],
+
                     'status_stok' => $product['status_stok'],
                     'gambar' => null,
                     'deskripsi' => $product['deskripsi'],
@@ -220,25 +219,5 @@ class SmartCitySeeder extends Seeder
         }
     }
 
-    private function seedIotStocks(): void
-    {
-        DB::table('iot_stocks')->delete();
 
-        $stocks = [
-            ['product' => 'Kopi Bubuk Palu', 'jarak_sensor' => 35, 'persentase_stok' => 30, 'status_stok' => 'Menipis'],
-            ['product' => 'Sambal Roa Botol', 'jarak_sensor' => 22, 'persentase_stok' => 42, 'status_stok' => 'Aman'],
-        ];
-
-        foreach ($stocks as $stock) {
-            DB::table('iot_stocks')->insert([
-                'product_id' => DB::table('products')->where('nama_produk', $stock['product'])->value('id'),
-                'jarak_sensor' => $stock['jarak_sensor'],
-                'persentase_stok' => $stock['persentase_stok'],
-                'status_stok' => $stock['status_stok'],
-                'waktu_update' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-    }
 }

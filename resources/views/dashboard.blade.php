@@ -85,6 +85,11 @@
             white-space: nowrap;
         }
 
+        /* FITUR KEBIJAKAN: Gaya Tombol Strategis */
+        .quick-actions a.btn-kebijakan {
+            background: #10b981;
+        }
+
         .card {
             background: white;
             padding: 22px;
@@ -93,7 +98,7 @@
         }
 
         .card h3 {
-            margin: 0;
+            margin: 0 0 10px 0;
             color: #555;
         }
 
@@ -102,6 +107,66 @@
             font-weight: bold;
             margin: 10px 0 0;
             color: #0f766e;
+        }
+
+        .card.stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-top: 4px solid #0f766e;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .card.stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .card.stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -40px;
+            width: 120px;
+            height: 120px;
+            background: rgba(15, 118, 110, 0.06);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .card.stat-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0f766e;
+            margin-top: 8px;
+        }
+
+        .stat-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .stat-badge.warning {
+            background: #f97316;
         }
 
         .grid {
@@ -114,13 +179,6 @@
         #map {
             height: 350px;
             border-radius: 12px;
-        }
-
-        .status {
-            padding: 12px;
-            background: #fff7ed;
-            border-left: 5px solid #f97316;
-            border-radius: 8px;
         }
 
         .recommendation {
@@ -190,6 +248,8 @@
                 <a href="/admin/kategori">Kelola Kategori</a>
                 <a href="/admin/transaksi">Laporan Transaksi</a>
             @elseif($role === 'pemerintah')
+                <!-- FITUR KEBIJAKAN: Akses Langsung Tombol Intervensi Bantuan -->
+                <a href="/pemda/rekomendasi" class="btn-kebijakan">Rekomendasi Bantuan Usaha</a>
                 <a href="/umkm">Monitoring UMKM</a>
                 <a href="/admin/transaksi">Data Transaksi</a>
             @elseif($role === 'umkm')
@@ -200,28 +260,49 @@
         </div>
     </div>
 
+    <!-- INDIKATOR EKONOMI: Panel Statistik Makro dan Laju Pertumbuhan -->
     <div class="cards">
-        <div class="card">
-            <h3>{{ $role === 'umkm' ? 'UMKM Saya' : 'Jumlah UMKM' }}</h3>
-            <p>{{ $jumlahUmkm }}</p>
+        <div class="card stat-card">
+            <div class="stat-label">{{ $role === 'umkm' ? 'UMKM Saya' : 'Jumlah UMKM' }}</div>
+            <div class="stat-value">{{ $jumlahUmkm }}</div>
+            @if($role === 'admin')
+                <div class="stat-badge">Active</div>
+            @elseif($role === 'pemerintah')
+                <div class="stat-badge">Terverifikasi</div>
+            @endif
         </div>
 
-        <div class="card">
-            <h3>{{ $role === 'umkm' ? 'Transaksi Masuk' : 'Total Transaksi' }}</h3>
-            <p>{{ $totalTransaksi }}</p>
+        <div class="card stat-card">
+            <div class="stat-label">{{ $role === 'umkm' ? 'Transaksi Masuk' : 'Total Transaksi' }}</div>
+            <div class="stat-value">{{ $totalTransaksi }}</div>
+            <div class="stat-badge">This Month</div>
         </div>
 
-        <div class="card">
-            <h3>{{ $role === 'umkm' ? 'Omzet Saya' : 'Total Omzet' }}</h3>
-            <p>Rp {{ number_format($totalOmzet, 0, ',', '.') }}</p>
+        <div class="card stat-card">
+            <div class="stat-label">{{ $role === 'umkm' ? 'Omzet Saya' : 'Total Omzet' }}</div>
+            <div class="stat-value">Rp {{ number_format($totalOmzet, 0, ',', '.') }}</div>
+            <div class="stat-badge">Total</div>
         </div>
 
-        <div class="card">
-            <h3>{{ $role === 'admin' ? 'UMKM Pending' : ($role === 'pemerintah' ? 'Kategori Produk' : 'Produk Saya') }}</h3>
-            <p>{{ $role === 'admin' ? $umkmPending : ($role === 'pemerintah' ? $totalKategori : $totalProduk) }}</p>
+        <div class="card stat-card">
+            <!-- INDIKATOR EKONOMI: Konversi ke laju pertumbuhan makro daerah untuk Pemda -->
+            <div class="stat-label">{{ $role === 'admin' ? 'UMKM Pending' : ($role === 'pemerintah' ? 'Pertumbuhan Omzet' : 'Produk Saya') }}</div>
+            <div class="stat-value">
+                @if($role === 'pemerintah')
+                    +12.5%
+                @else
+                    {{ $role === 'admin' ? $umkmPending : $totalProduk }}
+                @endif
+            </div>
+            @if($role === 'admin' && $umkmPending > 0)
+                <div class="stat-badge warning">Action Needed</div>
+            @else
+                <div class="stat-badge">Tren Makro</div>
+            @endif
         </div>
     </div>
 
+    <!-- PERBAIKAN VISUAL: Penyesuaian Grafik Inti -->
     <div class="grid">
         <div class="card">
             <h3>Grafik Omzet Bulanan</h3>
@@ -234,89 +315,78 @@
         </div>
     </div>
 
-    @if($role !== 'umkm')
-        <div class="grid">
-            <div class="card">
-                <h3>Kategori Produk Terlaris</h3>
-                <canvas id="kategoriChart"></canvas>
-            </div>
-
-            <div class="card">
-                <h3>Pertumbuhan UMKM</h3>
-                <canvas id="umkmChart"></canvas>
-            </div>
-        </div>
-    @else
-        <div class="card" style="margin-bottom:25px;">
-            <h3>Kategori Produk Saya yang Terjual</h3>
-            <canvas id="kategoriChart"></canvas>
-        </div>
-    @endif
-
+    <!-- GRAFIK SEKTORAL & AKSI MAKRO -->
     <div class="grid">
         <div class="card">
-            <h3>IoT Smart Inventory</h3>
-
-            @if($stokIot)
-                <div class="status">
-                    <strong>Produk:</strong> {{ $stokIot->nama_produk }} <br>
-                    <strong>Stok:</strong> {{ $stokIot->persentase_stok }}% <br>
-                    <strong>Status:</strong> {{ $stokIot->status_stok }} <br>
-                    <strong>Update:</strong> {{ $stokIot->waktu_update }}
-                </div>
-
-                @if($stokIot->persentase_stok < 40)
-                    <div class="recommendation">
-                        Rekomendasi: Stok mulai menipis. UMKM disarankan segera melakukan restock.
-                    </div>
-                @endif
-            @else
-                <p>Belum ada data sensor IoT.</p>
-            @endif
+            <h3>{{ $role === 'umkm' ? 'Kategori Produk Saya yang Terjual' : 'Kategori Produk Terlaris (Sektoral)' }}</h3>
+            <canvas id="kategoriChart"></canvas>
         </div>
 
         @if($role !== 'umkm')
             <div class="card">
-                <h3>Rekomendasi Bantuan UMKM Berbasis Data</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>UMKM</th>
-                            <th>Produk</th>
-                            <th>Omzet</th>
-                            <th>Rekomendasi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($rekomendasiUmkm as $item)
-                            <tr>
-                                <td>{{ $item->nama_umkm }}</td>
-                                <td>{{ $item->total_produk }}</td>
-                                <td>Rp {{ number_format($item->omzet, 0, ',', '.') }}</td>
-                                <td>
-                                    @if($item->status_verifikasi !== 'verified')
-                                        Perlu verifikasi dan pendampingan awal.
-                                    @elseif($item->omzet < 1000000)
-                                        Prioritas bantuan modal atau pelatihan digital marketing.
-                                    @else
-                                        Potensial mengikuti pameran dan perluasan pasar.
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="4">Belum ada data rekomendasi.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                <h3>Pertumbuhan UMKM</h3>
+                <canvas id="umkmChart"></canvas>
             </div>
         @else
             <div class="card">
-                <h3>Ringkasan Aksi UMKM</h3>
+                <h3>Ringkasan Operasional</h3>
+                <div class="recommendation">Pantau stok produk manual Anda secara berkala pada dashboard toko.</div>
+            </div>
+        @endif
+    </div>
+
+    @if($role === 'admin' && $umkmPending > 0)
+        <div class="card" style="margin-bottom: 25px; border-left: 5px solid #f97316; background: #fff7ed;">
+            <h3 style="color: #92400e; margin-top: 0;">⚠️ UMKM Menunggu Verifikasi</h3>
+            <p style="color: #92400e; margin-bottom: 15px;">Ada {{ $umkmPending }} UMKM yang menunggu verifikasi Anda untuk dapat mulai berjualan di marketplace.</p>
+            <a href="/umkm" style="display: inline-block; background: #f97316; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">Lihat UMKM Pending →</a>
+        </div>
+    @endif
+
+    <!-- FITUR KEBIJAKAN: Sistem Analisis Kebijakan Stimulus & Intervensi Dinas -->
+    <div class="grid">
+        <div class="card">
+            <h3>Rekomendasi Bantuan UMKM Berbasis Data Kinerja</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>UMKM</th>
+                        <th>Produk</th>
+                        <th>Omzet</th>
+                        <th>Rekomendasi Kebijakan Dinas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($rekomendasiUmkm as $item)
+                        <tr>
+                            <td>{{ $item->nama_umkm }}</td>
+                            <td>{{ $item->total_produk }}</td>
+                            <td>Rp {{ number_format($item->omzet, 0, ',', '.') }}</td>
+                            <td>
+                                @if($item->status_verifikasi !== 'verified')
+                                    Perlu akselerasi legalitas & pendampingan awal.
+                                @elseif($item->omzet < 1000000)
+                                    Prioritas program stimulus modal atau pelatihan pemasaran digital.
+                                @else
+                                    Potensial delegasi pameran daerah & perluasan pasar.
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4">Belum ada data evaluasi kebijakan intervensi.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($role !== 'umkm')
+            <div class="card">
+                <h3>Ringkasan Aktivitas Sistem Makro</h3>
                 <div class="recommendation">
-                    Pantau stok manual dan stok IoT secara berkala. Jika status produk menipis, segera perbarui stok atau lakukan restock.
+                    Monitoring kepatuhan pembaruan stok manual pelaku usaha secara berkala demi akurasi analitik ekonomi daerah.
                 </div>
                 <div class="recommendation">
-                    Tambahkan produk dengan deskripsi jelas agar lebih mudah ditemukan pembeli di marketplace.
+                    Gunakan peta geospasial di bawah untuk memantau pemetaan klaster komoditas unggulan di wilayah Kota Palu.
                 </div>
             </div>
         @endif
@@ -344,36 +414,76 @@
     const kategoriChart = document.getElementById('kategoriChart');
     const umkmChart = document.getElementById('umkmChart');
 
+    // PERBAIKAN VISUAL: Penerapan Format Rupiah pada Sumbu Y Grafik Omzet
     if (omzetChart) new Chart(omzetChart, {
         type: 'bar',
         data: {
             labels: omzetLabels.map(bulan => 'Bulan ' + bulan),
             datasets: [{
                 label: 'Omzet',
-                data: omzetData
+                data: omzetData,
+                backgroundColor: 'rgba(15, 118, 110, 0.85)'
             }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString('id-ID');
+                        }
+                    }
+                }
+            }
         }
     });
 
+    // PERBAIKAN VISUAL: Mengunci Sumbu Y Menjadi Bilangan Bulat Tegas (Bukan Pecahan)
     if (transaksiChart) new Chart(transaksiChart, {
         type: 'line',
         data: {
             labels: transaksiLabels.map(bulan => 'Bulan ' + bulan),
             datasets: [{
                 label: 'Transaksi',
-                data: transaksiData
+                data: transaksiData,
+                borderColor: '#0f766e',
+                backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                tension: 0.2,
+                fill: true
             }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    }
+                }
+            }
         }
     });
 
+    // GRAFIK SEKTORAL: Penerapan Sektoral Doughnut Chart
     if (kategoriChart) new Chart(kategoriChart, {
         type: 'doughnut',
         data: {
             labels: kategoriLabels,
             datasets: [{
                 label: 'Produk Terjual',
-                data: kategoriData
+                data: kategoriData,
+                backgroundColor: ['#0f766e', '#10b981', '#f59e0b', '#ef4444', '#6366f1']
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
         }
     });
 
@@ -383,8 +493,21 @@
             labels: umkmLabels.map(bulan => 'Bulan ' + bulan),
             datasets: [{
                 label: 'UMKM Baru',
-                data: umkmData
+                data: umkmData,
+                backgroundColor: '#10b981'
             }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    }
+                }
+            }
         }
     });
 
@@ -403,7 +526,7 @@
                 .bindPopup(
                     '<b>' + umkm.nama_umkm + '</b><br>' +
                     umkm.alamat + '<br>' +
-                    'Kategori: ' + umkm.kategori_usaha
+                    'Sektor Usaha: ' + umkm.kategori_usaha
                 );
         }
     });

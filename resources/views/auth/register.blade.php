@@ -6,79 +6,253 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
-        body { margin:0; font-family:Arial, sans-serif; background:#f4f6f9; color:#111827; }
-        .wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:30px; }
-        .box { width:620px; background:white; padding:28px; border-radius:12px; box-shadow:0 8px 22px rgba(0,0,0,.12); }
-        h1 { margin:0 0 6px; color:#0f766e; text-align:center; }
-        p { text-align:center; color:#64748b; margin:0 0 22px; }
-        label { display:block; font-weight:bold; margin-top:13px; }
-        input, select, textarea { width:100%; box-sizing:border-box; padding:11px; border:1px solid #cbd5e1; border-radius:8px; margin-top:6px; }
-        button, a { display:inline-block; padding:11px 15px; border-radius:8px; border:0; text-decoration:none; font-weight:bold; margin-top:18px; }
-        button { background:#0f766e; color:white; cursor:pointer; }
-        a { background:#e2e8f0; color:#0f172a; }
-        .error { background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; margin-bottom:12px; }
-        .umkm-fields { display:none; }
-        #map { height:300px; border-radius:10px; margin-top:8px; border:1px solid #cbd5e1; }
-        .map-note { margin-top:8px; font-size:13px; color:#475569; text-align:left; }
-        .coords { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-        .ghost { background:#64748b; color:white; }
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f766e 0%, #055b54 100%);
+            color: #111827;
+            padding: 30px 20px;
+        }
+
+        .register-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .register-header {
+            background: linear-gradient(135deg, #0f766e 0%, #055b54 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .register-header h1 {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .register-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 14px;
+        }
+
+        .register-form {
+            padding: 40px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-top: 18px;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 0;
+            font-size: 14px;
+            transition: border-color .2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 13px;
+            background: linear-gradient(135deg, #0f766e 0%, #055b54 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(15, 118, 110, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .register-form a {
+            display: inline-block;
+            flex: 1;
+            padding: 13px;
+            text-align: center;
+            background: #f0fdf4;
+            color: #0f766e;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid #dcfce7;
+            transition: all .2s ease;
+        }
+
+        .register-form a:hover {
+            background: #dcfce7;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            border-left: 4px solid #dc2626;
+            font-size: 14px;
+        }
+
+        .umkm-fields {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .umkm-fields.active {
+            display: block;
+        }
+
+        #map {
+            height: 300px;
+            border-radius: 10px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .map-note {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+            text-align: left;
+        }
+
+        .coords {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        #locateBtn {
+            margin-top: 12px;
+            background: #64748b;
+            font-size: 14px;
+            padding: 12px;
+        }
+
+        #locateBtn:hover {
+            background: #475569;
+        }
+
+        @media (max-width: 768px) {
+            .register-header {
+                padding: 25px;
+            }
+
+            .register-form {
+                padding: 25px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-group a {
+                flex: unset;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="box">
-        <h1>Registrasi Akun</h1>
-        <p>Daftar sebagai pembeli atau pelaku UMKM.</p>
 
+<div class="register-container">
+    <div class="register-header">
+        <h1>🚀 Daftar Akun</h1>
+        <p>Bergabunglah dengan UMKM Digital Palu</p>
+    </div>
+
+    <div class="register-form">
         @if($errors->any())
             <div class="error">{{ $errors->first() }}</div>
         @endif
 
         <form method="POST" action="/register">
             @csrf
-            <label>Nama</label>
-            <input type="text" name="name" value="{{ old('name') }}" required>
+            
+            <label for="name">Nama Lengkap</label>
+            <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="Masukkan nama Anda" required>
 
-            <label>Email</label>
-            <input type="email" name="email" value="{{ old('email') }}" required>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="contoh@email.com" required>
 
-            <label>Role</label>
+            <label for="role">Saya daftar sebagai</label>
             <select name="role" id="role" required>
-                <option value="pembeli" {{ old('role') === 'pembeli' ? 'selected' : '' }}>Pembeli</option>
-                <option value="umkm" {{ old('role') === 'umkm' ? 'selected' : '' }}>UMKM</option>
+                <option value="pembeli" {{ old('role') === 'pembeli' ? 'selected' : '' }}>👤 Pembeli</option>
+                <option value="umkm" {{ old('role') === 'umkm' ? 'selected' : '' }}>🏪 Pemilik UMKM</option>
             </select>
 
             <div class="umkm-fields" id="umkmFields">
-                <label>Nama UMKM</label>
-                <input type="text" name="nama_umkm" value="{{ old('nama_umkm') }}">
+                <label for="nama_umkm">Nama UMKM</label>
+                <input type="text" id="nama_umkm" name="nama_umkm" value="{{ old('nama_umkm') }}" placeholder="Nama toko/usaha Anda">
 
-                <label>Alamat UMKM</label>
-                <textarea name="alamat" rows="3">{{ old('alamat') }}</textarea>
+                <label for="alamat">Alamat UMKM</label>
+                <textarea id="alamat" name="alamat" rows="3" placeholder="Alamat lengkap usaha Anda">{{ old('alamat') }}</textarea>
 
-                <label>Pin Lokasi UMKM</label>
+                <label for="kategori_usaha">Kategori Usaha</label>
+                <input type="text" id="kategori_usaha" name="kategori_usaha" value="{{ old('kategori_usaha') }}" placeholder="Contoh: Kuliner, Fashion, Jasa">
+
+                <label>📍 Pin Lokasi UMKM</label>
                 <div id="map"></div>
-                <div class="map-note" id="mapNote">Klik lokasi UMKM di peta. Marker akan menjadi titik alamat pada dashboard dan peta persebaran UMKM.</div>
+                <div class="map-note">Klik pada peta untuk menentukan lokasi UMKM Anda</div>
                 <div class="coords">
                     <input type="text" name="latitude" id="latitude" value="{{ old('latitude') }}" placeholder="Latitude" readonly>
                     <input type="text" name="longitude" id="longitude" value="{{ old('longitude') }}" placeholder="Longitude" readonly>
                 </div>
-                <button type="button" class="ghost" id="locateBtn">Gunakan Lokasi Saya</button>
-
-                <label>Kategori Usaha</label>
-                <input type="text" name="kategori_usaha" value="{{ old('kategori_usaha') }}" placeholder="Kuliner, Fashion, Jasa">
+                <button type="button" id="locateBtn">📍 Gunakan Lokasi Saya</button>
             </div>
 
-            <label>Password</label>
-            <input type="password" name="password" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Minimal 8 karakter" required>
 
-            <label>Konfirmasi Password</label>
-            <input type="password" name="password_confirmation" required>
+            <label for="password_confirmation">Konfirmasi Password</label>
+            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ulangi password Anda" required>
 
-            <button type="submit">Daftar</button>
-            <a href="/login">Sudah punya akun</a>
+            <div class="button-group">
+                <button type="submit">Daftar Sekarang</button>
+                <a href="/login">Sudah punya akun?</a>
+            </div>
         </form>
     </div>
 </div>
+
 <script>
     const role = document.getElementById('role');
     const fields = document.getElementById('umkmFields');
@@ -128,9 +302,11 @@
     }
 
     function syncFields() {
-        fields.style.display = role.value === 'umkm' ? 'block' : 'none';
-        if (role.value === 'umkm') {
-            initMap();
+        const isUmkm = role.value === 'umkm';
+        fields.classList.toggle('active', isUmkm);
+        
+        if (isUmkm) {
+            setTimeout(initMap, 100);
         }
     }
 
@@ -148,6 +324,11 @@
     });
 
     role.addEventListener('change', syncFields);
+    syncFields();
+</script>
+
+</body>
+</html>
     syncFields();
 </script>
 </body>

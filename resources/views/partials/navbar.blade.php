@@ -98,28 +98,28 @@
     $menus = [
         'admin' => [
             ['label' => 'Dashboard', 'url' => '/dashboard', 'patterns' => ['dashboard', 'admin/dashboard']],
-            ['label' => 'Verifikasi UMKM', 'url' => '/umkm', 'patterns' => ['umkm', 'umkm/create', 'umkm/*/edit']],
-            ['label' => 'Kategori', 'url' => '/admin/kategori', 'patterns' => ['admin/kategori*']],
-            ['label' => 'Transaksi', 'url' => '/admin/transaksi', 'patterns' => ['admin/transaksi*']],
+            ['label' => 'Kelola UMKM', 'url' => '/umkm', 'patterns' => ['umkm', 'umkm/create', 'umkm/*/edit']],
+            ['label' => 'Kelola Kategori', 'url' => '/admin/kategori', 'patterns' => ['admin/kategori*']],
+            ['label' => 'Laporan Transaksi', 'url' => '/admin/transaksi', 'patterns' => ['admin/transaksi*']],
             ['label' => 'Marketplace', 'url' => '/produk', 'patterns' => ['produk']],
         ],
         'pemerintah' => [
             ['label' => 'Dashboard', 'url' => '/dashboard', 'patterns' => ['dashboard', 'pemerintah/dashboard']],
             ['label' => 'Monitoring UMKM', 'url' => '/umkm', 'patterns' => ['umkm']],
-            ['label' => 'Data Transaksi', 'url' => '/admin/transaksi', 'patterns' => ['admin/transaksi*']],
+            ['label' => 'Laporan Transaksi', 'url' => '/admin/transaksi', 'patterns' => ['admin/transaksi*']],
             ['label' => 'Marketplace', 'url' => '/produk', 'patterns' => ['produk']],
         ],
         'umkm' => [
             ['label' => 'Dashboard', 'url' => '/dashboard', 'patterns' => ['dashboard', 'umkm/dashboard']],
             ['label' => 'Profil UMKM', 'url' => '/umkm', 'patterns' => ['umkm', 'umkm/create', 'umkm/*/edit']],
-            ['label' => 'Produk Saya', 'url' => '/umkm/produk', 'patterns' => ['umkm/produk*']],
-            ['label' => 'Transaksi', 'url' => '/umkm/transaksi', 'patterns' => ['umkm/transaksi']],
+            ['label' => 'Kelola Produk', 'url' => '/umkm/produk', 'patterns' => ['umkm/produk*']],
+            ['label' => 'Riwayat Transaksi', 'url' => '/umkm/transaksi', 'patterns' => ['umkm/transaksi']],
             ['label' => 'Marketplace', 'url' => '/produk', 'patterns' => ['produk']],
         ],
         'pembeli' => [
             ['label' => 'Marketplace', 'url' => '/produk', 'patterns' => ['produk']],
             ['label' => 'Keranjang', 'url' => '/keranjang', 'patterns' => ['keranjang']],
-            ['label' => 'Pesanan', 'url' => '/pesanan', 'patterns' => ['pesanan']],
+            ['label' => 'Pesanan Saya', 'url' => '/pesanan', 'patterns' => ['pesanan']],
         ],
     ];
 
@@ -138,11 +138,17 @@
     </div>
 
     <div class="app-navbar__links">
+        @php $cartCount = array_sum(session('cart', [])); @endphp
         @foreach($currentMenus as $menu)
-            <a class="{{ $active(...$menu['patterns']) }}" href="{{ $menu['url'] }}">{{ $menu['label'] }}</a>
+            @php $label = $menu['label']; @endphp
+            @if($menu['url'] === '/keranjang' && $cartCount > 0)
+                @php $label .= " (" . $cartCount . ")"; @endphp
+            @endif
+            <a class="{{ $active(...$menu['patterns']) }}" href="{{ $menu['url'] }}">{{ $label }}</a>
         @endforeach
 
         @auth
+            <a href="/profile">Profil</a>
             <form method="POST" action="/logout">
                 @csrf
                 <button type="submit">Logout</button>
