@@ -262,8 +262,6 @@
 
 </body>
 </html>
-        Pembeli: pembeli@umkm.com<br>
-        Password: password
     </div>
 </div>
 

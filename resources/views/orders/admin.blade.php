@@ -283,7 +283,7 @@
 <div class="container">
     <div class="page-header">
         <h1>📊 Laporan Transaksi</h1>
-        <p>Monitoring semua transaksi marketplace dan kelola status pesanan</p>
+        <p>Monitoring semua transaksi marketplace. Status pesanan diperbarui oleh UMKM penjual.</p>
     </div>
 
     @if(session('success'))
@@ -328,7 +328,7 @@
                     <div class="total-amount">Rp {{ number_format($order->subtotal, 0, ',', '.') }}</div>
                 </div>
 
-                @if(auth()->user()->role === 'admin')
+                @if(false)
                     <form method="POST" action="/admin/transaksi/{{ $order->id }}/status" class="status-form">
                         @csrf
                         <select name="status_order" required>

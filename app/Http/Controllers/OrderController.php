@@ -52,17 +52,26 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        abort_unless(Auth::user()->role === 'admin', 403);
+        abort_unless(Auth::user()->role === 'umkm', 403);
 
         $request->validate([
-            'status_order' => 'required|in:pending,paid,completed',
+            'status_order' => 'required|in:paid,completed',
         ]);
+
+        $ownsOrder = DB::table('order_details')
+            ->join('products', 'order_details.product_id', '=', 'products.id')
+            ->join('umkms', 'products.umkm_id', '=', 'umkms.id')
+            ->where('order_details.order_id', $id)
+            ->where('umkms.user_id', Auth::id())
+            ->exists();
+
+        abort_unless($ownsOrder, 403);
 
         DB::table('orders')->where('id', $id)->update([
             'status_order' => $request->status_order,
             'updated_at' => now(),
         ]);
 
-        return redirect('/admin/transaksi')->with('success', 'Status pesanan berhasil diperbarui.');
+        return redirect('/umkm/transaksi')->with('success', 'Status pesanan berhasil diperbarui.');
     }
 }

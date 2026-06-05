@@ -132,6 +132,128 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $omzetBulanIni = (clone $orderQuery)
+            ->whereMonth('tanggal_order', now()->month)
+            ->whereYear('tanggal_order', now()->year)
+            ->sum('total_harga');
+
+        $omzetBulanLalu = (clone $orderQuery)
+            ->whereMonth('tanggal_order', now()->subMonth()->month)
+            ->whereYear('tanggal_order', now()->subMonth()->year)
+            ->sum('total_harga');
+
+        $pertumbuhanOmzet = $omzetBulanLalu > 0
+            ? (($omzetBulanIni - $omzetBulanLalu) / $omzetBulanLalu) * 100
+            : ($omzetBulanIni > 0 ? 100 : 0);
+
+        $umkmTerverifikasi = DB::table('umkms')->where('status_verifikasi', 'verified')->count();
+        $rataRataTransaksi = $totalTransaksi > 0 ? $totalOmzet / $totalTransaksi : 0;
+
+        $performaSektoral = DB::table('umkms')
+            ->leftJoin('products', 'umkms.id', '=', 'products.umkm_id')
+            ->leftJoin('order_details', 'products.id', '=', 'order_details.product_id')
+            ->leftJoin('orders', 'order_details.order_id', '=', 'orders.id')
+            ->select(
+                DB::raw("COALESCE(umkms.kategori_usaha, 'Belum Dikategorikan') as sektor"),
+                DB::raw('COUNT(DISTINCT umkms.id) as total_umkm'),
+                DB::raw('COUNT(DISTINCT products.id) as total_produk'),
+                DB::raw('COUNT(DISTINCT orders.id) as total_transaksi'),
+                DB::raw('COALESCE(SUM(order_details.subtotal), 0) as omzet')
+            )
+            ->groupBy('sektor')
+            ->orderByDesc('omzet')
+            ->limit(6)
+            ->get();
+
+        $kebijakanPrioritas = [
+            [
+                'judul' => 'Stimulus UMKM Mikro',
+                'sasaran' => $rekomendasiUmkm->where('omzet', '<', 1000000)->count() . ' UMKM prioritas',
+                'indikator' => 'Omzet rendah dan produk masih terbatas',
+                'status' => 'Prioritas Tinggi',
+            ],
+            [
+                'judul' => 'Akselerasi Legalitas',
+                'sasaran' => $umkmPending . ' UMKM pending',
+                'indikator' => 'Verifikasi dan kelengkapan data usaha',
+                'status' => $umkmPending > 0 ? 'Perlu Tindak Lanjut' : 'Terkendali',
+            ],
+            [
+                'judul' => 'Penguatan Sektor Unggulan',
+                'sasaran' => optional($performaSektoral->first())->sektor ?? 'Belum ada sektor',
+                'indikator' => 'Sektor dengan omzet tertinggi',
+                'status' => 'Siap Dikembangkan',
+            ],
+        ];
+
+        $indikatorEkonomi = [
+            'umkm_terverifikasi' => $umkmTerverifikasi,
+            'rasio_verifikasi' => $jumlahUmkm > 0 ? ($umkmTerverifikasi / $jumlahUmkm) * 100 : 0,
+            'omzet_bulan_ini' => $omzetBulanIni,
+            'pertumbuhan_omzet' => $pertumbuhanOmzet,
+            'rata_rata_transaksi' => $rataRataTransaksi,
+            'sektor_aktif' => $performaSektoral->count(),
+        ];
+
+        $stokMenipis = DB::table('products')
+            ->when($umkmIds !== null, fn ($query) => $query->whereIn('umkm_id', $umkmIds))
+            ->where('stok_manual', '<=', 10)
+            ->count();
+
+        $stokKosong = DB::table('products')
+            ->when($umkmIds !== null, fn ($query) => $query->whereIn('umkm_id', $umkmIds))
+            ->where('stok_manual', 0)
+            ->count();
+
+        $nilaiStok = DB::table('products')
+            ->when($umkmIds !== null, fn ($query) => $query->whereIn('umkm_id', $umkmIds))
+            ->selectRaw('COALESCE(SUM(harga * stok_manual), 0) as total')
+            ->value('total');
+
+        $produkTerlarisUmkm = DB::table('order_details')
+            ->join('products', 'order_details.product_id', '=', 'products.id')
+            ->select(
+                'products.nama_produk',
+                'products.stok_manual',
+                DB::raw('SUM(order_details.jumlah) as total_terjual'),
+                DB::raw('SUM(order_details.subtotal) as omzet')
+            )
+            ->when($umkmIds !== null, fn ($query) => $query->whereIn('products.umkm_id', $umkmIds))
+            ->groupBy('products.id', 'products.nama_produk', 'products.stok_manual')
+            ->orderByDesc('total_terjual')
+            ->limit(5)
+            ->get();
+
+        $transaksiTerbaruUmkm = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('products', 'order_details.product_id', '=', 'products.id')
+            ->join('users', 'orders.buyer_id', '=', 'users.id')
+            ->select(
+                'orders.id as order_id',
+                'orders.tanggal_order',
+                'orders.status_order',
+                'users.name as pembeli',
+                'products.nama_produk',
+                'order_details.jumlah',
+                'order_details.subtotal'
+            )
+            ->when($umkmIds !== null, fn ($query) => $query->whereIn('products.umkm_id', $umkmIds))
+            ->latest('orders.tanggal_order')
+            ->limit(5)
+            ->get();
+
+        $pesananPerluDiproses = DB::table('orders')
+            ->where('orders.status_order', 'paid')
+            ->when($umkmIds !== null, function ($query) use ($umkmIds) {
+                $query->whereIn('orders.id', function ($subquery) use ($umkmIds) {
+                    $subquery->select('order_details.order_id')
+                        ->from('order_details')
+                        ->join('products', 'order_details.product_id', '=', 'products.id')
+                        ->whereIn('products.umkm_id', $umkmIds);
+                });
+            })
+            ->count();
+
         return view('dashboard', compact(
             'jumlahUmkm',
             'totalTransaksi',
@@ -144,7 +266,16 @@ class DashboardController extends Controller
             'grafikTransaksi',
             'kategoriTerlaris',
             'pertumbuhanUmkm',
-            'rekomendasiUmkm'
+            'rekomendasiUmkm',
+            'performaSektoral',
+            'kebijakanPrioritas',
+            'indikatorEkonomi',
+            'stokMenipis',
+            'stokKosong',
+            'nilaiStok',
+            'produkTerlarisUmkm',
+            'transaksiTerbaruUmkm',
+            'pesananPerluDiproses'
         ));
     }
 }

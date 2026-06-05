@@ -53,7 +53,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/kategori/{id}/edit', [CategoryController::class, 'edit']);
         Route::post('/admin/kategori/{id}/update', [CategoryController::class, 'update']);
         Route::post('/admin/kategori/{id}/delete', [CategoryController::class, 'destroy']);
-        Route::post('/admin/transaksi/{id}/status', [OrderController::class, 'updateStatus']);
         Route::post('/umkm/{id}/verify', [UmkmController::class, 'verify']);
         Route::post('/umkm/{id}/delete', [UmkmController::class, 'destroy']);
     });
@@ -80,6 +79,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:umkm')->group(function () {
         Route::get('/umkm/dashboard', [DashboardController::class, 'index']);
         Route::get('/umkm/transaksi', [ProductController::class, 'transactions']);
+        Route::post('/umkm/transaksi/{id}/status', [OrderController::class, 'updateStatus']);
         Route::get('/umkm/produk', [ProductController::class, 'umkmProducts']);
         Route::get('/umkm/produk/create', [ProductController::class, 'create']);
         Route::post('/umkm/produk/store', [ProductController::class, 'store']);

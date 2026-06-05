@@ -84,43 +84,51 @@ class CartController extends Controller
             }
         }
 
-        $total = $products->sum(fn ($product) => $product->harga * $cart[$product->id]);
-        $createdOrderId = null;
+        $createdOrderIds = [];
 
-        DB::transaction(function () use ($products, $cart, $total, &$createdOrderId) {
-            $createdOrderId = DB::table('orders')->insertGetId([
-                'buyer_id' => Auth::id(),
-                'total_harga' => $total,
-                'status_order' => 'paid',
-                'tanggal_order' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        DB::transaction(function () use ($products, $cart, &$createdOrderIds) {
+            foreach ($products->groupBy('umkm_id') as $sellerProducts) {
+                $sellerTotal = $sellerProducts->sum(fn ($product) => $product->harga * $cart[$product->id]);
 
-            foreach ($products as $product) {
-                $jumlah = $cart[$product->id];
-
-                DB::table('order_details')->insert([
-                    'order_id' => $createdOrderId,
-                    'product_id' => $product->id,
-                    'jumlah' => $jumlah,
-                    'harga_satuan' => $product->harga,
-                    'subtotal' => $product->harga * $jumlah,
+                $createdOrderId = DB::table('orders')->insertGetId([
+                    'buyer_id' => Auth::id(),
+                    'total_harga' => $sellerTotal,
+                    'status_order' => 'paid',
+                    'tanggal_order' => now(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
 
-                $stokManual = max(0, $product->stok_manual - $jumlah);
-                DB::table('products')->where('id', $product->id)->update([
-                    'stok_manual' => $stokManual,
-                    'status_stok' => $stokManual <= 10 ? 'Menipis' : 'Aman',
-                    'updated_at' => now(),
-                ]);
+                $createdOrderIds[] = $createdOrderId;
+
+                foreach ($sellerProducts as $product) {
+                    $jumlah = $cart[$product->id];
+
+                    DB::table('order_details')->insert([
+                        'order_id' => $createdOrderId,
+                        'product_id' => $product->id,
+                        'jumlah' => $jumlah,
+                        'harga_satuan' => $product->harga,
+                        'subtotal' => $product->harga * $jumlah,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    $stokManual = max(0, $product->stok_manual - $jumlah);
+                    DB::table('products')->where('id', $product->id)->update([
+                        'stok_manual' => $stokManual,
+                        'status_stok' => $stokManual <= 10 ? 'Menipis' : 'Aman',
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         });
 
         session()->forget('cart');
 
-        return redirect('/pesanan')->with('success', 'Checkout berhasil. Nomor pesanan #' . $createdOrderId . ' sudah tercatat.');
+        return redirect('/pesanan')->with(
+            'success',
+            'Checkout berhasil. Pesanan #' . implode(', #', $createdOrderIds) . ' sudah masuk ke UMKM penjual masing-masing.'
+        );
     }
 }
